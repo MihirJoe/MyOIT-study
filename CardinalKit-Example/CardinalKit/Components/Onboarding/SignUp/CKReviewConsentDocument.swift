@@ -10,7 +10,6 @@ import Foundation
 import Firebase
 import ResearchKit
 
-
 public class CKReviewConsentDocument: ORKQuestionStep {
     public override init(
         identifier: String
@@ -25,11 +24,11 @@ public class CKReviewConsentDocument: ORKQuestionStep {
     }
 }
 
-public class CKReviewConsentDocumentViewController:ORKQuestionStepViewController{
-    public var CKReviewConsentDocument: CKReviewConsentDocument!{
+public class CKReviewConsentDocumentViewController:ORKQuestionStepViewController {
+    public var CKReviewConsentDocument: CKReviewConsentDocument! {
         return step as? CKReviewConsentDocument
     }
-    
+
     public override func viewDidLoad() {
         let storage = Storage.storage()
         let storageRef = storage.reference()
@@ -44,7 +43,7 @@ public class CKReviewConsentDocumentViewController:ORKQuestionStepViewController
             docURL = docURL?.appendingPathComponent("\(consentFileName).pdf") as NSURL?
             let url = docURL! as URL
             
-            DocumentRef.write(toFile: url) { url, error in
+            DocumentRef.write(toFile: url) { _, error in
                 if let error = error {
                     print(error.localizedDescription)
                     self.setAnswer(false)

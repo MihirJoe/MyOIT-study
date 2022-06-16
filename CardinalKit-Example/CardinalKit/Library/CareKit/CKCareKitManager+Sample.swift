@@ -15,67 +15,64 @@ import CardinalKit
 
 internal extension OCKStore {
 
-    fileprivate func insertDocuments(documents: [DocumentSnapshot]?, collection: String, authCollection: String?,lastUpdateDate: Date?,onCompletion: @escaping (Error?)->Void){
+    fileprivate func insertDocuments(documents: [DocumentSnapshot]?, collection: String, authCollection: String?, lastUpdateDate: Date?, onCompletion: @escaping (Error?) -> Void) {
         guard let documents = documents,
-             documents.count>0 else {
+        !documents.isEmpty else {
            onCompletion(nil)
            return
        }
         
         let group = DispatchGroup()
-        for document in documents{
+        for document in documents {
             group.enter()
             var route = ""
                if let authCollection = authCollection {
                    route = "\(authCollection)\(collection)/\(document.documentID)"
-               }
-               else{
+               } else {
                    guard  let nAuth = CKStudyUser.shared.authCollection else {
                        return
                    }
                    route = "\(nAuth)\(collection)/\(document.documentID)"
                }
-               CKApp.requestData(route: route, onCompletion: {
-                   result in
-                   do{
+               CKApp.requestData(route: route, onCompletion: { result in
+                   do {
                    guard let document = result as? DocumentSnapshot,
                            let payload = document.data(),
                            let id = payload["id"] as? String
-                   else{
+                   else {
                        return
                    }
 
-                    var itemSchedule:OCKSchedule? = nil
+                    var itemSchedule: OCKSchedule? = nil
                     var update = true
                     if lastUpdateDate != nil,
                        let updateTimeServer = payload["updateTime"] as? Timestamp,
                        updateTimeServer.dateValue()<lastUpdateDate!{
                         update = false
                     }
-                    
+
                     if update,
-                        let schedule = payload["scheduleElements"] as? [[String:Any]]
-                    {
+                        let schedule = payload["scheduleElements"] as? [[String: Any]] {
                         var scheduleElements=[OCKScheduleElement]()
-                        for element in schedule{
+                        for element in schedule {
                             var startDate = Date()
-                            var endDate:Date?=nil
+                            var endDate: Date? = nil
                             var intervalDate = DateComponents(day:2)
-                            var durationElement:OCKScheduleElement.Duration = .allDay
-                            if let startStamp = element["startTime"] as? Timestamp{
+                            var durationElement: OCKScheduleElement.Duration = .allDay
+                            if let startStamp = element["startTime"] as? Timestamp {
                                 startDate = startStamp.dateValue()
                             }
-                            if let endStamp = element["endTime"] as? Timestamp{
+                            if let endStamp = element["endTime"] as? Timestamp {
                                 endDate = endStamp.dateValue()
                             }
                             
-                            if let interval = element["interval"] as? [String:Any]{
+                            if let interval = element["interval"] as? [String: Any] {
                                 var day = 1
-                                if let dayInterval = interval["day"] as? Int{
+                                if let dayInterval = interval["day"] as? Int {
                                     day = dayInterval
                                 }
                                 var seconds = 1
-                                if let secondsInterval = interval["seconds"] as? Int{
+                                if let secondsInterval = interval["seconds"] as? Int {
                                     seconds = secondsInterval
                                 }
                                 intervalDate =
@@ -93,25 +90,25 @@ internal extension OCKStore {
                                         weekOfYear: interval["weekOfYear"] as? Int,
                                         yearForWeekOfYear: interval["yearForWeekOfYear"] as? Int)
                             }
-                            if let duration = element["duration"] as? [String:Any]{
+                            if let duration = element["duration"] as? [String: Any] {
                                 if let allDay = duration["allDay"] as? Bool,
-                                   allDay{
+                                   allDay {
                                     durationElement = .allDay
                                 }
-                                if let seconds = duration["seconds"] as? Double{
+                                if let seconds = duration["seconds"] as? Double {
                                     durationElement = .seconds(seconds)
                                 }
-                                if let hours = duration["hours"] as? Double{
+                                if let hours = duration["hours"] as? Double {
                                     durationElement = .hours(hours)
                                 }
-                                if let minutes = duration["minutes"] as? Double{
+                                if let minutes = duration["minutes"] as? Double {
                                     durationElement = .minutes(minutes)
                                 }
                             }
-                            var targetValue:[OCKOutcomeValue] = [OCKOutcomeValue]()
-                            if let targetValues = element["targetValues"] as? [[String:Any]]{
-                                for target in targetValues{
-                                    if let identifier = target["groupIdentifier"] as? String{
+                            var targetValue: [OCKOutcomeValue] = [OCKOutcomeValue]()
+                            if let targetValues = element["targetValues"] as? [[String: Any]] {
+                                for target in targetValues {
+                                    if let identifier = target["groupIdentifier"] as? String {
                                         var come = OCKOutcomeValue(false, units: nil)
                                             come.groupIdentifier=identifier
                                         targetValue.append(come)
@@ -120,17 +117,17 @@ internal extension OCKStore {
                             }
                             scheduleElements.append(OCKScheduleElement(start: startDate, end: endDate, interval: intervalDate, text: element["text"] as? String, targetValues: targetValue, duration: durationElement))
                         }
-                        if scheduleElements.count>0{
+                        if !scheduleElements.isEmpty {
                             itemSchedule = OCKSchedule(composing: scheduleElements)
                         }
                     }
-                    if let itemSchedule = itemSchedule{
+                    if let itemSchedule = itemSchedule {
                         var uuid:UUID? = nil
-                        if let _uuid = payload["uuid"] as? String{
+                        if let _uuid = payload["uuid"] as? String {
                             uuid=UUID(uuidString: _uuid)
                         }
                         var task = OCKTask(id: id, title: payload["title"] as? String, carePlanUUID: uuid, schedule: itemSchedule)
-                        if let impactsAdherence = payload["impactsAdherence"] as? Bool{
+                        if let impactsAdherence = payload["impactsAdherence"] as? Bool {
                             task.impactsAdherence = impactsAdherence
                         }
                         task.instructions = payload["instructions"] as? String
@@ -154,8 +151,7 @@ internal extension OCKStore {
 
                             group.leave()
                         }
-                    }
-                    else{
+                    } else {
                         group.leave()
                     }
                     
@@ -167,11 +163,11 @@ internal extension OCKStore {
         })
     }
     // Adds tasks and contacts into the store
-    func populateSampleData(lastUpdateDate: Date?,completion:@escaping () -> Void) {
-        
+    func populateSampleData(lastUpdateDate: Date?, completion: @escaping () -> Void) {
+
         let collection: String = "carekit-store/v2/tasks"
         // Download Tasks By Study
-        
+
         guard  let studyCollection = CKStudyUser.shared.studyCollection,
                let authCollection = CKStudyUser.shared.authCollection
         else {
@@ -181,12 +177,12 @@ internal extension OCKStore {
         let studyRoute = studyCollection + "\(collection)"
         let authRoute = authCollection + "\(collection)"
         CKApp.requestData(route: studyRoute, onCompletion: { result in
-            if let documents = result as? [DocumentSnapshot]{
-                self.insertDocuments(documents: documents, collection: collection, authCollection: studyCollection,lastUpdateDate:lastUpdateDate){
+            if let documents = result as? [DocumentSnapshot] {
+                self.insertDocuments(documents: documents, collection: collection, authCollection: studyCollection,lastUpdateDate:lastUpdateDate) {
                     (Error) in
                     CKApp.requestData(route: authRoute, onCompletion: { result in
                         if let documents = result as? [DocumentSnapshot]{
-                            self.insertDocuments(documents: documents, collection: collection, authCollection: nil,lastUpdateDate:lastUpdateDate){
+                            self.insertDocuments(documents: documents, collection: collection, authCollection: nil,lastUpdateDate:lastUpdateDate) {
                                 (Error) in
                                 self.createContacts()
                                 completion()
@@ -195,20 +191,19 @@ internal extension OCKStore {
                     })
                 }
             }
-            
         })
 
     }
     
     func createContacts() {
         let config = CKPropertyReader(file: "CKConfiguration")
-        let contactData = config.readAny(query: "Contacts") as! [[String:String]]
-//        Have to put it into a list so we can reverse the list later
+        let contactData = config.readAny(query: "Contacts") as! [[String: String]]
+        // Have to put it into a list so we can reverse the list later
         var ockContactElements: [OCKContact] = []
         for data in contactData {
             let address = OCKPostalAddress()
             var thisContact = OCKContact(id: data["givenName"]! + data["familyName"]!, givenName: data["givenName"]!, familyName: data["familyName"]!, carePlanUUID: nil)
-//            If you have an image named exactly givenNamefamilyName, in assets, it will be put on contact card
+            // If you have an image named exactly givenNamefamilyName, in assets, it will be put on contact card
             thisContact.asset = data["givenName"]! + data["familyName"]!
             for (k, v) in data {
                 k == "role" ? thisContact.role = v :
@@ -227,10 +222,9 @@ internal extension OCKStore {
             }
             ockContactElements.append(thisContact)
         }
-//        Have to do this for them to be in what is probably the correct order
+        // Have to do this for them to be in what is probably the correct order
         addContacts(ockContactElements.reversed())
     }
-    
 }
 
 extension OCKHealthKitPassthroughStore {

@@ -18,18 +18,18 @@ extension AppDelegate {
      Handle special CardinalKit logic for when the app is launched.
     */
     func CKAppLaunch() {
-        
+
         // (1) setup the CardinalKit SDK
-        var options = CKAppOptions()
+        let options = CKAppOptions()
         CKApp.configure(options)
-        
+
         // (2) if we have already logged in
         if CKStudyUser.shared.isLoggedIn {
             CKStudyUser.shared.save()
-            
+
             // (3) then start the requested HK data collection (if any).
             let manager = CKHealthKitManager.shared
-            manager.getHealthAuthorization { (success, error) in
+            manager.getHealthAuthorization { (_, error) in
                 if let error = error {
                     print(error)
                 }
@@ -37,5 +37,5 @@ extension AppDelegate {
         }
         CKStudyUser.shared.save()
     }
-    
+
 }

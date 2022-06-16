@@ -11,7 +11,7 @@ import ResearchKit
 import Firebase
 import CardinalKit
 
-class CKUploadToGCPTaskViewControllerDelegate : NSObject, ORKTaskViewControllerDelegate {
+class CKUploadToGCPTaskViewControllerDelegate: NSObject, ORKTaskViewControllerDelegate {
         
     public func taskViewController(_ taskViewController: ORKTaskViewController, didFinishWith reason: ORKTaskViewControllerFinishReason, error: Error?) {
         switch reason {
@@ -19,7 +19,7 @@ class CKUploadToGCPTaskViewControllerDelegate : NSObject, ORKTaskViewControllerD
            do {
                 // (1) convert the result of the ResearchKit task into a JSON dictionary
                 //if let json = try CKTaskResultAsJson(taskViewController.result) {
-                if let json = try   CK_ORKSerialization.CKTaskAsJson(result: taskViewController.result,task: taskViewController.task!) {
+                if let json = try CK_ORKSerialization.CKTaskAsJson(result: taskViewController.result, task: taskViewController.task!) {
                     // (2) send using Firebase
                     try CKSendJSON(json)
                     
