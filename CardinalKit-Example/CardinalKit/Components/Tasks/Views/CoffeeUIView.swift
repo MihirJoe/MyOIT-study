@@ -10,6 +10,9 @@ import ResearchKit
 import SwiftUI
 
 struct CoffeeUIView: View {
+    
+    @State var coffeeChartViewModel = CoffeeChartViewModel()
+    
     var body: some View {
         VStack(spacing: 10) {
             Image("CKLogo")
@@ -19,10 +22,13 @@ struct CoffeeUIView: View {
                 .padding(.trailing, Metrics.paddingHorizontalMain * 4)
                 .accessibilityLabel(Text("Logo"))
             
-            CoffeePieChartView()
+            CoffeePieChartView(dataSource: coffeeChartViewModel.coffeeDataSource)
                 .frame(minWidth: 0, maxWidth: .infinity, minHeight: 0, maxHeight: .infinity)
                 .scaledToFit()
                 .padding(Metrics.paddingHorizontalMain * 4)
+//                .onAppear {
+//                    coffeeChartViewModel.updateCoffeeChart()
+//                }
             
             Spacer()
             

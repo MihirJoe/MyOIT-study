@@ -34,6 +34,14 @@ struct MainUIView: View {
                         Text("Schedule")
                     }
                 
+                DashboardViewControllerRepresentable().ignoresSafeArea(edges: .all)
+                    .tabItem {
+                        Image("tab_dashboard")
+                            .renderingMode(.template)
+                            .accessibilityLabel(Text("Dashboard"))
+                        Text("Dashboard")
+                    }
+                
                 CareTeamViewControllerRepresentable()
                     .ignoresSafeArea(edges: .all)
                     .tabItem {

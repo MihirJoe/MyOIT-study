@@ -11,6 +11,9 @@ import SwiftUI
 
 
 struct CoffeePieChartView: UIViewRepresentable {
+    
+    @State var dataSource: CoffeeChartDataSource
+    
     func updateUIView(_ uiView: UIViewType, context: Context) {
         // not implemented
     }
@@ -27,7 +30,7 @@ struct CoffeePieChartView: UIViewRepresentable {
         chartView.noDataText = "Take the coffee survey and come back!"
         
         CoffeeChartDataSource.fetchData { result in
-            let dataSource = CoffeeChartDataSource(countPerAnswer: result)
+            dataSource = CoffeeChartDataSource(countPerAnswer: result)
             chartView.dataSource = dataSource
             chartView.animate(withDuration: 1.0)
         }
